@@ -1,20 +1,81 @@
 .data
-	tabuleiro: .word 1,2,3,4,5,6,7,8,9#vetor com 9 posições para o tabuleiro
+	tabuleiro: .word  2, 2 , 2, 2, 2, 2, 2, 2, 2 #vetor com 9 posições para o tabuleiro
 	jogador1: .word 1
 	jogador2: .word 0
-	
+	caracter: .byte '|'
+	espaco: .byte ' '
+	linha: .asciiz "_ _ _\n"
 .text
-	#inicializar tabuleiro
+
+#AINDA PRECISA CORRIGIR ESSA FUNÇÃO DE IMPRIMIR TABULEIRO
+#inicializar tabuleiro
+# ->todas as posições inciarão com 2
 inicializa_tabuleiro:
 
-	la $t0, tabuleiro #carregar o primeiro enderço do vetor
+	la $s0, tabuleiro #carregar o primeiro enderço do vetor
 	
-	lw $s0,0($t0)
-	lw $s1,4($t0)
-	lw $s2,8($t0)
-	lw $s3,12($t0)
-	lw $s4,16($t0)
-	lw $s5,20($t0)
-	lw $s6,24($t0)
-	lw $s7,28($t0)
-	lw $a0,32($t0)	
+	lw $t0,0($s0)
+	lw $t1,4($s0)
+	lw $t2,8($s0)
+	lw $t3,12($s0)
+	lw $t4,16($s0)
+	lw $t5,20($s0)
+	lw $t6,24($s0)
+	lw $t7,28($s0)
+	lw $t8,32($s0)	
+	
+#função para imprimir o tabuleiro do jogo da velha
+imprimime_tabuleiro:
+
+	li $t0, 1
+	
+	li $v0,4 # comando para imprimir char ou string
+	la $a0, caracter
+	
+	li $t1,1
+	
+	li $v0,4 
+	la $a0, caracter
+	
+	li $t2, 1
+	
+	li $v0,4 # comando para imprimir char ou string
+	la $a0, caracter
+
+	li $t3, 1
+	
+	syscall
+	
+	li $v0,4 # comando para imprimir char ou string
+	la $a0, linha
+	
+	syscall 
+	
+	li $t4, 1 # o número 1 é para quando precisamos imprimir um número inteiro
+	
+	li $v0,4 # comando para imprimir char ou string
+	la $a0, caracter
+	
+	li $t5, 1
+	
+	li $v0,4 # comando para imprimir char ou string
+	la $a0, caracter
+	
+	li $t6, 1
+	
+	syscall
+	
+	li $v0,4 # comando para imprimir char ou string
+	la $a0, linha
+	
+	syscall
+	
+	li $t7, 1
+	
+	li $v0,4 # comando para imprimir char ou string
+	la $a0, caracter
+	
+	li $t8,4
+	
+	
+	syscall 
