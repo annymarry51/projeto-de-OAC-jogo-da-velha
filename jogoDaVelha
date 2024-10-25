@@ -1,81 +1,121 @@
 .data
-	tabuleiro: .word  2, 2 , 2, 2, 2, 2, 2, 2, 2 #vetor com 9 posições para o tabuleiro
-	jogador1: .word 1
-	jogador2: .word 0
-	caracter: .byte '|'
-	espaco: .byte ' '
-	linha: .asciiz "_ _ _\n"
+    jogador1: .word 1
+    jogador2: .word 0
+    caracter: .asciiz "|"
+    espaco: .byte ' '
+    linha: .asciiz "\n_ _ _\n"
+    jogador_1: .word 0
+    jogador_2: .word 1
+    vez: .asciiz "Vez do jogador "
+    escolha: .asciiz "Deseja continuar jogando? S/n"
+
 .text
-
-#AINDA PRECISA CORRIGIR ESSA FUNÇÃO DE IMPRIMIR TABULEIRO
-#inicializar tabuleiro
-# ->todas as posições inciarão com 2
+.globl main
+main:
+    jal inicializa_tabuleiro
+    jal imprime_tabuleiro
+    li $v0, 10
+    syscall
+    
 inicializa_tabuleiro:
+    addi $t0, $zero, 2
+    addi $t1, $zero, 2
+    addi $t2, $zero, 2
+    addi $t3, $zero, 2
+    addi $t4, $zero, 2
+    addi $t5, $zero, 2
+    addi $t6, $zero, 2
+    addi $t7, $zero, 2
+    addi $t8, $zero, 2
+    jr $ra
 
-	la $s0, tabuleiro #carregar o primeiro enderço do vetor
-	
-	lw $t0,0($s0)
-	lw $t1,4($s0)
-	lw $t2,8($s0)
-	lw $t3,12($s0)
-	lw $t4,16($s0)
-	lw $t5,20($s0)
-	lw $t6,24($s0)
-	lw $t7,28($s0)
-	lw $t8,32($s0)	
-	
-#função para imprimir o tabuleiro do jogo da velha
-imprimime_tabuleiro:
+# Funções para imprimir o tabuleiro do jogo da velha
+imprime_linha_divisoria:
+    addi $v0, $zero, 4
+    la $a0, linha
+    syscall 
+    jr $ra
 
-	li $t0, 1
-	
-	li $v0,4 # comando para imprimir char ou string
-	la $a0, caracter
-	
-	li $t1,1
-	
-	li $v0,4 
-	la $a0, caracter
-	
-	li $t2, 1
-	
-	li $v0,4 # comando para imprimir char ou string
-	la $a0, caracter
+imprime_num:
+    addi $v0, $zero, 1
+    add $a0, $zero,$a1 
+    syscall 
+    jr $ra
 
-	li $t3, 1
-	
-	syscall
-	
-	li $v0,4 # comando para imprimir char ou string
-	la $a0, linha
-	
-	syscall 
-	
-	li $t4, 1 # o número 1 é para quando precisamos imprimir um número inteiro
-	
-	li $v0,4 # comando para imprimir char ou string
-	la $a0, caracter
-	
-	li $t5, 1
-	
-	li $v0,4 # comando para imprimir char ou string
-	la $a0, caracter
-	
-	li $t6, 1
-	
-	syscall
-	
-	li $v0,4 # comando para imprimir char ou string
-	la $a0, linha
-	
-	syscall
-	
-	li $t7, 1
-	
-	li $v0,4 # comando para imprimir char ou string
-	la $a0, caracter
-	
-	li $t8,4
-	
-	
-	syscall 
+imprime_espaco:
+    addi $v0, $zero, 4
+    la $a0, espaco
+    syscall 
+    jr $ra
+    
+imprime_barra:
+    addi $v0, $zero, 4
+    la $a0, caracter
+    syscall 
+    jr $ra
+
+imprime_linha1:
+    addi $sp, $sp, -4          # Alocação de espaço na pilha
+    sw $ra, 0($sp)             # Salvar o endereço de retorno na pilha
+    
+    add $a1, $zero, $t0
+    
+    jal imprime_num
+    jal imprime_barra
+    add $a1, $zero, $t1
+    jal imprime_num
+    jal imprime_barra
+    add $a1, $zero, $t2
+    jal imprime_num
+    
+    lw $ra, 0($sp)             # Restaurar o endereço de retorno
+    addi $sp, $sp, 4           # Desalocar da pilha
+    jr $ra
+
+imprime_linha2:
+    addi $sp, $sp, -4          # Alocação de espaço na pilha
+    sw $ra, 0($sp)             # Salvar o endereço de retorno na pilha
+    
+    add $a1, $zero, $t3
+    jal imprime_num
+    jal imprime_barra
+    add $a1, $zero, $t4
+    jal imprime_num
+    jal imprime_barra
+    add $a1, $zero, $t5
+    jal imprime_num
+    
+    lw $ra, 0($sp)             # Restaurar o endereço de retorno
+    addi $sp, $sp, 4           # Desalocar da pilha
+    jr $ra
+
+imprime_linha3:
+    addi $sp, $sp, -4          # Alocação de espaço na pilha
+    sw $ra, 0($sp)             # Salvar o endereço de retorno na pilha
+    
+    add $a1, $zero, $t6
+    jal imprime_num
+    jal imprime_barra
+    add $a1, $zero, $t7
+    jal imprime_num
+    jal imprime_barra 
+    add $a1, $zero, $t8
+    jal imprime_num
+    
+    lw $ra, 0($sp)             # Restaurar o endereço de retorno
+    addi $sp, $sp, 4           # Desalocar da pilha
+    jr $ra
+
+imprime_tabuleiro: 
+    addi $sp, $sp, -4          # Alocação de espaço na pilha
+    sw $ra, 0($sp)             # Salvar o endereço de retorno na pilha
+    
+    jal imprime_linha1
+    jal imprime_linha_divisoria
+    jal imprime_linha2
+    jal imprime_linha_divisoria
+    jal imprime_linha3
+    
+    lw $ra, 0($sp)             # Restaurar o endereço de retorno
+    addi $sp, $sp, 4           # Desalocar da pilha
+    jr $ra
