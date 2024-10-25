@@ -4,19 +4,33 @@
     caracter: .asciiz "|"
     espaco: .byte ' '
     linha: .asciiz "\n_ _ _\n"
-    jogador_1: .word 0
-    jogador_2: .word 1
     vez: .asciiz "Vez do jogador "
-    escolha: .asciiz "Deseja continuar jogando? S/n"
+    escolha: .asciiz "Deseja continuar jogando? S/N"
 
 .text
-.globl main
+
+#registradores $t1 a $t7 e $t8  são para cada posição do tabuleiro
+#registradores $a0, $a1 e $a2 são para parâmetros de funções
+#registrador $v0 para idicar o que vai ser impresso se char, String, inteiro...
+#registrador $sp para a pilha de endereço de função quando necessário
+#registradores $s0 e $s1, para os jogadores
+#registrador $v1 para retorno de função, como na função e_igual
+
 main:
+    addi $s0,$zero, 0 #para o primeiro jogador
+    addi $s1, $zero, 1 #para o segundo jogador
+    
     jal inicializa_tabuleiro
+    
     jal imprime_tabuleiro
+    
+    jal sair
+    
+sair:
     li $v0, 10
     syscall
-    
+#função para incializar o tabuleiro, incialmente
+#cada posição tem armazenado o número 2   
 inicializa_tabuleiro:
     addi $t0, $zero, 2
     addi $t1, $zero, 2
@@ -119,3 +133,39 @@ imprime_tabuleiro:
     lw $ra, 0($sp)             # Restaurar o endereço de retorno
     addi $sp, $sp, 4           # Desalocar da pilha
     jr $ra
+
+#função para imprimir mensagem que indica de quem é a vez
+mensagem1:
+	addi $v0, $zero, 4
+	la $a0, vez
+	syscall 
+	
+	addi $v0, $zero, 1
+	add $a0, $zero, $a1
+	syscall 
+	
+	jr $ra
+
+#escolher se deseja continuar jogando	
+escolher:	
+	addi $v0, $zero, 4
+	la $a0, escolha
+	syscall 
+	
+	addi $v0, $zero, 8
+	syscall 
+	add $s0, $zero, $v0
+	
+	jr $ra
+
+#comparar registradores
+e_igual:
+	beq $a0, $a1, confere
+	addi $v1, $zero, 0
+	jr $ra
+	confere: beq $a0, $a2, confere2
+	addi $v1, $zero, 0
+	jr $ra
+	confere2:
+	addi $v1, $zero, 1
+	jr $ra
