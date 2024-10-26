@@ -3,13 +3,15 @@
     jogador2: .word 0
     caracter: .asciiz "|"
     espaco: .byte ' '
-    linha: .asciiz "\n-----\n"
+    linha: .asciiz "\n-+-+-\n"
     vez: .asciiz "Vez do jogador "
     escolha: .asciiz "Deseja continuar jogando? S/N"
-    jogada: .asciiz "Qual a posicao deseja jogar de 1 a 9?"
-
-
+    jogada: .asciiz "\nQual a posicao deseja jogar de 1 a 9?"
+   
 .text
+
+#observação quando for fazer a lógica do loop e de decidir quem vai jogar
+#lembrar de salar em a2 para ser ultilizada em confere_jogada_valida
 
 #registradores $t1 a $t7 e $t8  são para cada posição do tabuleiro
 #registradores $a0, $a1 e $a2 são para parâmetros de funções
@@ -17,12 +19,19 @@
 #registrador $sp para a pilha de endereço de função quando necessário
 #registradores $s0 e $s1, para os jogadores
 #registrador $v1 para retorno de função, como na função e_igual
+#registrado $s3 para armazenar o valor lido do teclado
+#registrador $s4 para servir de contador
 
 main:
+
     addi $s0,$zero, 0 #para o primeiro jogador
     addi $s1, $zero, 1 #para o segundo jogador
     
     jal inicializa_tabuleiro
+    
+    jal imprime_tabuleiro
+    
+    jal jogador
     
     jal imprime_tabuleiro
     
@@ -163,47 +172,183 @@ escolher:
 #comparar registradores
 e_igual:
 	beq $a0, $a1, confere
-	addi $v1, $zero, 0
+	addi $v1, $zero, 0 #$v1 é o retorno da função
 	jr $ra
 	confere: beq $a0, $a2, confere2
-	addi $v1, $zero, 0
+	addi $v1, $zero, 0 
 	jr $ra
 	confere2:
 	addi $v1, $zero, 1
 	jr $ra
 
-#Faz o jogador 1 jogar salvando que foi ele quem jogou  em um registrador
-jogador1: 
-	addi $v0, $zero, 4
-	la $s3, jogada
-	syscall
-	addi $v0, $zero, 5
-	syscall
-	j conferir
+#Faz o jogador jogar salvando que foi ele quem jogou  em um registrador
+jogador: 
+    addi $sp, $sp, -4          # Alocação de espaço na pilha
+    sw $ra, 0($sp)             # Salvar o endereço de retorno na pilha
+
+    # Imprime a mensagem perguntando a posição
+    addi $v0, $zero, 4
+    la $a0, jogada
+    syscall
+
+    # Ler do teclado a posição e salvar em $s3
+    addi $v0, $zero, 5
+    syscall
+    add $s3, $zero, $v0
+
+    # Contador para contar as jogadas
+    addi $s4, $s4, 1
+
+    # Chamar a função para conferir a jogada
+    add $a1, $zero, $s3
+    jal conferir_jogada_valida
+
+    lw $ra, 0($sp)             # Restaurar o endereço de retorno
+    addi $sp, $sp, 4           # Desalocar da pilha
+    jr $ra
 	
-#Conferre se as regras estão sendo seguidas (Inicia com um if para saber  se é maior que 9 ou menor que 1)
+#Confere se as regras estão sendo seguidas (Inicia com um if para saber  se é maior que 9 ou menor que 1)
 #Apos isso testar a posicao (descobrir qual o registrador deve ser atualizado )e confere se o valor é 2 ou se ja foi
 #altereado por algum jogador, caso  tenha sido quem alterou por ultimo perde
 conferir_jogada_valida:
-	bgt $a0, derrota
-	blez $0, derrota
-	addi   , ,1	
-	bge #registradores usados acima e se o valor dele for >= 5 chama conferir resultado
+	addi $sp, $sp, -4          
+        sw $ra, 0($sp)             
+        
+	bgt $a1, 9, derrota #maior que
+	bltz $a1, derrota #menor que zero
 	
-
+	beq $a1, 1 , t0
+	beq $a1, 2 , t1
+	beq $a1, 3 , t2
+	
+	beq $a1, 4 , t3
+	beq $a1, 5 , t4
+	beq $a1, 6 , t5
+	
+	beq $a1, 7 , t6
+	beq $a1, 8 , t7
+	beq $a1, 9 , t8
+	
+	t0: blt $t0 , 2, derrota #menor que
+	add $t0, $zero, $a2
+	j finalizar
+	
+	t1: blt $t1, 2, derrota #menor que
+	add $t1, $zero, $a2
+	j finalizar
+	
+	t2: blt $t2, 2, derrota #menor que
+	add $t2, $zero, $a2
+	j finalizar
+	
+	t3: blt $t3, 2, derrota #menor que
+	add $t3, $zero, $a2
+	j finalizar
+	
+	t4: blt $t4, 2, derrota #menor que
+	add $t4, $zero, $a2
+	j finalizar
+	
+	t5: blt $t5, 2, derrota #menor que
+	add $t5, $zero, $a2
+	j finalizar
+	
+	t6: blt $t6, 2, derrota #menor que
+	add $t6, $zero, $a2
+	j finalizar
+	
+	t7: blt $t7, 2, derrota #menor que
+	add $t2, $zero, $a2
+	j finalizar
+	
+	t8: blt $t8, 2, derrota #menor que
+	add $t8, $zero, $a2
+	j finalizar
+	
+	conferir: jal 	conferir_resultado
+	
+	derrota: 
+	
+	finalizar: bge $s4, 5, conferir #registradores usados acima e se o valor dele for >= 5 chama conferir resultado	
+	lw $ra, 0($sp)             
+        addi $sp, $sp, 4
+	jr $ra
 	
 	
-	
-	
-Conferir_resultado:
+conferir_resultado:
 #Sequencia de condicionais para saber se o jogador venceu
 #Se venceu vai para uma nova "tela" chamada vitoria
 #se nao venceu Volta para jogador
+ 	addi $sp, $sp, -4          # Alocação de espaço na pilha
+    	sw $ra, 0($sp)             # Salvar o endereço de retorno na pilha
 
+	#para as linhas
+	
+	#primeira linha
+	add $a0, $zero, $t0
+	add $a0, $zero, $t1
+	add $a0, $zero, $t2
+	jal e_igual
+	beq $v1,1, vitoria
+	
+	#segunda linha
+	add $a0, $zero, $t3
+	add $a0, $zero, $t4
+	add $a0, $zero, $t5
+	jal e_igual
+	beq $v1,1, vitoria
+	
+	#terceira linha
+	add $a0, $zero, $t6
+	add $a0, $zero, $t7
+	add $a0, $zero, $t8
+	jal e_igual
+	beq $v1,1, vitoria
+	
+	#para as colunas
+	
+	#primeira coluna
+	add $a0, $zero, $t0
+	add $a0, $zero, $t3
+	add $a0, $zero, $t6
+	jal e_igual
+	beq $v1,1, vitoria
+	
+	#segunda coluna
+	add $a0, $zero, $t1
+	add $a0, $zero, $t4
+	add $a0, $zero, $t7
+	jal e_igual
+	beq $v1,1, vitoria
+	
+	#terceira coluna
+	add $a0, $zero, $t2
+	add $a0, $zero, $t5
+	add $a0, $zero, $t8
+	jal e_igual
+	beq $v1,1, vitoria
+	
+	#para as diagonias
+	
+	#diagonal principal
+	add $a0, $zero, $t0
+	add $a0, $zero, $t4
+	add $a0, $zero, $t8
+	jal e_igual
+	beq $v1,1, vitoria
+	
+	#diagonal secundária
+	add $a0, $zero, $t2
+	add $a0, $zero, $t4
+	add $a0, $zero, $t6
+	jal e_igual
+	beq $v1,1, vitoria
+	
 
-
-
-
+	vitoria: 
+	lw $ra, 0($sp)             
+        addi $sp, $sp, 4
+	jr $ra
 
 
 
