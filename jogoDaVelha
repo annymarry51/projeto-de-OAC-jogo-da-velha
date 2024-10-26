@@ -3,9 +3,11 @@
     jogador2: .word 0
     caracter: .asciiz "|"
     espaco: .byte ' '
-    linha: .asciiz "\n_ _ _\n"
+    linha: .asciiz "\n-----\n"
     vez: .asciiz "Vez do jogador "
     escolha: .asciiz "Deseja continuar jogando? S/N"
+    jogada: .asciiz "Qual a posicao deseja jogar de 1 a 9?"
+
 
 .text
 
@@ -169,3 +171,47 @@ e_igual:
 	confere2:
 	addi $v1, $zero, 1
 	jr $ra
+
+#Faz o jogador 1 jogar salvando que foi ele quem jogou  em um registrador
+jogador1: 
+	addi $v0, $zero, 4
+	la $s3, jogada
+	syscall
+	addi $v0, $zero, 5
+	syscall
+	j conferir
+	
+#Conferre se as regras estão sendo seguidas (Inicia com um if para saber  se é maior que 9 ou menor que 1)
+#Apos isso testar a posicao (descobrir qual o registrador deve ser atualizado )e confere se o valor é 2 ou se ja foi
+#altereado por algum jogador, caso  tenha sido quem alterou por ultimo perde
+conferir_jogada_valida:
+	bgt $a0, derrota
+	blez $0, derrota
+	addi   , ,1	
+	bge #registradores usados acima e se o valor dele for >= 5 chama conferir resultado
+	
+
+	
+	
+	
+	
+Conferir_resultado:
+#Sequencia de condicionais para saber se o jogador venceu
+#Se venceu vai para uma nova "tela" chamada vitoria
+#se nao venceu Volta para jogador
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
