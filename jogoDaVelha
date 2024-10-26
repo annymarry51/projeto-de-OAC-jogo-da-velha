@@ -344,8 +344,13 @@ conferir_resultado:
 	jal e_igual
 	beq $v1,1, vitoria
 	
-
+	#caso de empate
+	#se não entrou em nenhum dos casos anteriores
+	#e o numeros de jogadas é igual a 9 é porque empatou
+	beq $s4,9, empate
+	
 	vitoria: 
+	empate:
 	lw $ra, 0($sp)             
         addi $sp, $sp, 4
 	jr $ra
