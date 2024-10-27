@@ -1,13 +1,17 @@
 .data
-    jogador1: .word 1
-    jogador2: .word 0
     caracter: .asciiz "|"
     espaco: .byte ' '
     linha: .asciiz "\n-+-+-\n"
-    vez: .asciiz "Vez do jogador "
-    escolha: .asciiz "Deseja continuar jogando? S/N"
+    vez: .asciiz "\nVez do jogador "
+    escolha: .asciiz "\nDeseja continuar jogando? 1 para continuar ou 0 para sair\n"
     jogada: .asciiz "\nQual a posicao deseja jogar de 1 a 9?"
-   
+    menu_op: .asciiz "\n\tMENU\n\n1 - REGRAS\n2 - JOGAR\n3 - SAIR\n"
+    op_invalida: .asciiz "\nOPCAO INVALIDA\n"
+    regras: .asciiz "\nO tabuleiro é composto por 9 espaços.\nCada jogador possui um símbolo para representar sua escolha (0 ou 1).\nOs jogadores se revezam para jogar.\nSomente espaços vazios podem ser preenchidos.\nSe um jogador escolher uma posição inexistente ou ocupada, ele perde a vez.\n"
+    jogador_n: .asciiz "\nJogador "
+    venceu: .asciiz " venceu!\n"
+    perdeu: .asciiz " perdeu, porque fez uma jogada inválida\n"
+    empate_n: .asciiz "\nEmpate!\n"
 .text
 
 #observação quando for fazer a lógica do loop e de decidir quem vai jogar
@@ -21,21 +25,13 @@
 #registrador $v1 para retorno de função, como na função e_igual
 #registrado $s3 para armazenar o valor lido do teclado
 #registrador $s4 para servir de contador
-
+#registrador $s5 para indicar se a partida terminou
 main:
 
     addi $s0,$zero, 0 #para o primeiro jogador
     addi $s1, $zero, 1 #para o segundo jogador
-    
-    jal inicializa_tabuleiro
-    
-    jal imprime_tabuleiro
-    
-    jal jogador
-    
-    jal imprime_tabuleiro
-    
-    jal sair
+
+    jal menu
     
 sair:
     li $v0, 10
@@ -163,24 +159,33 @@ escolher:
 	la $a0, escolha
 	syscall 
 	
-	addi $v0, $zero, 8
+	addi $v0, $zero, 5
 	syscall 
-	add $s0, $zero, $v0
+	add $s3, $zero, $v0
 	
 	jr $ra
 
 #comparar registradores
 e_igual:
-	beq $a0, $a1, confere
 	addi $v1, $zero, 0 #$v1 é o retorno da função
-	jr $ra
-	confere: beq $a0, $a2, confere2
-	addi $v1, $zero, 0 
-	jr $ra
-	confere2:
+	bne $a0, $a1, retorne
+	bne $a1, $a2, retorne
+	beq $a1, 2, retorne
 	addi $v1, $zero, 1
+	retorne: jr $ra
+vez_jogador:
+	addi $sp, $sp, -4         
+        sw $ra, 0($sp) 
+        
+	addi $v0, $zero, 4
+	la $a0, vez
+	syscall 
+	add $a1, $zero, $s6
+	jal imprime_num
+	
+	lw $ra, 0($sp)           
+        addi $sp, $sp, 4  
 	jr $ra
-
 #Faz o jogador jogar salvando que foi ele quem jogou  em um registrador
 jogador: 
     addi $sp, $sp, -4          # Alocação de espaço na pilha
@@ -211,11 +216,11 @@ jogador:
 #Apos isso testar a posicao (descobrir qual o registrador deve ser atualizado )e confere se o valor é 2 ou se ja foi
 #altereado por algum jogador, caso  tenha sido quem alterou por ultimo perde
 conferir_jogada_valida:
-	addi $sp, $sp, -4          
-        sw $ra, 0($sp)             
+	addi $sp, $sp, -4          # Alocação de espaço na pilha
+    	sw $ra, 0($sp)             # Salvar o endereço de retorno na pilha        
         
 	bgt $a1, 9, derrota #maior que
-	bltz $a1, derrota #menor que zero
+	blt $a1, 1, derrota #menor que zero
 	
 	beq $a1, 1 , t0
 	beq $a1, 2 , t1
@@ -229,79 +234,93 @@ conferir_jogada_valida:
 	beq $a1, 8 , t7
 	beq $a1, 9 , t8
 	
-	t0: blt $t0 , 2, derrota #menor que
+	t0: bne $t0 , 2, derrota #se é diferente de 2
 	add $t0, $zero, $a2
 	j finalizar
 	
-	t1: blt $t1, 2, derrota #menor que
+	t1: bne $t1, 2, derrota 
 	add $t1, $zero, $a2
 	j finalizar
 	
-	t2: blt $t2, 2, derrota #menor que
+	t2: bne $t2, 2, derrota 
 	add $t2, $zero, $a2
 	j finalizar
 	
-	t3: blt $t3, 2, derrota #menor que
+	t3: bne $t3, 2, derrota
 	add $t3, $zero, $a2
 	j finalizar
 	
-	t4: blt $t4, 2, derrota #menor que
+	t4: bne $t4, 2, derrota 
 	add $t4, $zero, $a2
 	j finalizar
 	
-	t5: blt $t5, 2, derrota #menor que
+	t5: bne $t5, 2, derrota 
 	add $t5, $zero, $a2
 	j finalizar
 	
-	t6: blt $t6, 2, derrota #menor que
+	t6: bne $t6, 2, derrota 
 	add $t6, $zero, $a2
 	j finalizar
 	
-	t7: blt $t7, 2, derrota #menor que
-	add $t2, $zero, $a2
+	t7: bne $t7, 2, derrota 
+	add $t7, $zero, $a2
 	j finalizar
 	
-	t8: blt $t8, 2, derrota #menor que
+	t8: bne $t8, 2, derrota 
 	add $t8, $zero, $a2
+	
 	j finalizar
 	
-	conferir: jal 	conferir_resultado
 	
-	derrota: 
-	
-	finalizar: bge $s4, 5, conferir #registradores usados acima e se o valor dele for >= 5 chama conferir resultado	
-	lw $ra, 0($sp)             
+	finalizar: 
+	bge $s4, 5, conferir #registradores usados acima e se o valor dele for >= 5 chama conferir resultado	
+	f: lw $ra, 0($sp)             
         addi $sp, $sp, 4
 	jr $ra
 	
+	derrota: addi $s5, $zero, 1
+	addi $v0, $zero,4 
+	la $a0, jogador_n
+	syscall 
+	add $a1, $zero, $s6
+	jal imprime_num
+	addi $v0, $zero,4 
+	la $a0, perdeu
+	syscall
+	conferir: jal 	conferir_resultado
+	j f
 	
-conferir_resultado:
+	
+
 #Sequencia de condicionais para saber se o jogador venceu
 #Se venceu vai para uma nova "tela" chamada vitoria
 #se nao venceu Volta para jogador
- 	addi $sp, $sp, -4          # Alocação de espaço na pilha
-    	sw $ra, 0($sp)             # Salvar o endereço de retorno na pilha
-
+conferir_resultado:
+	addi $sp, $sp, -4          # Alocação de espaço na pilha
+    	sw $ra, 0($sp)             # Salvar o endereço de retorno na pilha        
+    	
+	addi $s5, $zero, 0
+	
 	#para as linhas
 	
 	#primeira linha
 	add $a0, $zero, $t0
-	add $a0, $zero, $t1
-	add $a0, $zero, $t2
+	add $a1, $zero, $t1
+	add $a2, $zero, $t2
 	jal e_igual
 	beq $v1,1, vitoria
 	
 	#segunda linha
 	add $a0, $zero, $t3
-	add $a0, $zero, $t4
-	add $a0, $zero, $t5
+	add $a1, $zero, $t4
+	add $a2, $zero, $t5
 	jal e_igual
 	beq $v1,1, vitoria
 	
 	#terceira linha
 	add $a0, $zero, $t6
-	add $a0, $zero, $t7
-	add $a0, $zero, $t8
+	add $a1, $zero, $t7
+	add $a2, $zero, $t8
 	jal e_igual
 	beq $v1,1, vitoria
 	
@@ -309,22 +328,22 @@ conferir_resultado:
 	
 	#primeira coluna
 	add $a0, $zero, $t0
-	add $a0, $zero, $t3
-	add $a0, $zero, $t6
+	add $a1, $zero, $t3
+	add $a2, $zero, $t6
 	jal e_igual
 	beq $v1,1, vitoria
 	
 	#segunda coluna
 	add $a0, $zero, $t1
-	add $a0, $zero, $t4
-	add $a0, $zero, $t7
+	add $a1, $zero, $t4
+	add $a2, $zero, $t7
 	jal e_igual
 	beq $v1,1, vitoria
 	
 	#terceira coluna
 	add $a0, $zero, $t2
-	add $a0, $zero, $t5
-	add $a0, $zero, $t8
+	add $a1, $zero, $t5
+	add $a2, $zero, $t8
 	jal e_igual
 	beq $v1,1, vitoria
 	
@@ -332,15 +351,15 @@ conferir_resultado:
 	
 	#diagonal principal
 	add $a0, $zero, $t0
-	add $a0, $zero, $t4
-	add $a0, $zero, $t8
+	add $a1, $zero, $t4
+	add $a2, $zero, $t8
 	jal e_igual
 	beq $v1,1, vitoria
 	
 	#diagonal secundária
 	add $a0, $zero, $t2
-	add $a0, $zero, $t4
-	add $a0, $zero, $t6
+	add $a1, $zero, $t4
+	add $a2, $zero, $t6
 	jal e_igual
 	beq $v1,1, vitoria
 	
@@ -349,19 +368,91 @@ conferir_resultado:
 	#e o numeros de jogadas é igual a 9 é porque empatou
 	beq $s4,9, empate
 	
-	vitoria: 
-	empate:
+	#caso não deu empate ou não ganharam por enquanto
+	j retorno
+	
+	vitoria: addi $s5, $zero, 1
+	jal imprime_tabuleiro
+	addi $v0, $zero,4 
+	la $a0, jogador_n
+	syscall 
+	add $a1, $zero, $s6
+	jal imprime_num
+	addi $v0, $zero,4 
+	la $a0, venceu
+	syscall
+	j retorno
+	
+	empate:addi $s5, $zero, 1
+	jal imprime_tabuleiro
+	addi $v0, $zero,4 
+	la $a0, empate_n
+	
+	retorno: 
 	lw $ra, 0($sp)             
         addi $sp, $sp, 4
 	jr $ra
 
 
-
-
-
-
-
-
-
-
-
+jogar: 
+	addi $sp, $sp, -4          # Alocação de espaço na pilha
+    	sw $ra, 0($sp)             # Salvar o endereço de retorno na pilha
+    	
+	comece: jal inicializa_tabuleiro 
+	add $s5, $zero, $zero
+	add $s4, $zero, $zero
+   	c: jal imprime_tabuleiro
+	add $a2,$zero,$s0 #para o primeiro jogador
+	add $s6,$zero,$s0
+	jal vez_jogador
+	jal jogador
+	jal imprime_tabuleiro
+	beq $s5, 1, terminou
+	add $a2,$zero,$s1 #para o segundo jogador
+	add $s6,$zero,$s1
+	jal vez_jogador
+	jal jogador
+	beq $s5, 1, terminou
+	j c
+	#imprimir mensagem perguntando se deseja continuar
+	terminou: 
+	jal escolher
+    	
+    	beq $s3, 0, fim #caso queira parar volta para o menu
+    	beq $s3, 1, comece #caso queira continuar a jogar volta para o comeco
+    	j terminou
+    	
+    	fim: 
+	lw $ra, 0($sp)             
+        addi $sp, $sp, 4
+        
+        jr $ra
+imprime_regras:
+	addi $v0, $zero,4 #imprimir as opçõess do menu
+	la $a0, regras
+	syscall
+	
+menu: 
+	comeca: addi $v0, $zero,4 #imprimir as opçõess do menu
+	la $a0, menu_op
+	syscall
+	
+	# Ler do teclado a posição e salvar em $s4
+    	addi $v0, $zero, 5
+    	syscall
+    	add $s3, $zero, $v0
+    	
+    	beq $s3, 1, r
+    	beq $s3, 2, comeca_jogo
+    	beq $s3, 3, sai
+    	
+    	addi $v0, $zero,4 
+	la $a0, op_invalida
+	syscall
+	
+	j comeca
+    	comeca_jogo: jal jogar
+    	j comeca
+	r: jal imprime_regras
+	j comeca
+	sai: jal sair
