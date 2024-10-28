@@ -1,17 +1,18 @@
 .data
     caracter: .asciiz "|"
-    espaco: .byte ' '
-    linha: .asciiz "\n-+-+-\n"
-    vez: .asciiz "\nVez do jogador "
-    escolha: .asciiz "\nDeseja continuar jogando? 1 para continuar ou 0 para sair\n"
-    jogada: .asciiz "\nQual a posicao deseja jogar de 1 a 9?"
-    menu_op: .asciiz "\n\tMENU\n\n1 - REGRAS\n2 - JOGAR\n3 - SAIR\n"
-    op_invalida: .asciiz "\nOPCAO INVALIDA\n"
-    regras: .asciiz "\nO tabuleiro é composto por 9 espaços.\nCada jogador possui um símbolo para representar sua escolha (0 ou 1).\nOs jogadores se revezam para jogar.\nSomente espaços vazios podem ser preenchidos.\nSe um jogador escolher uma posição inexistente ou ocupada, ele perde a vez.\n"
-    jogador_n: .asciiz "\nJogador "
-    venceu: .asciiz " venceu!\n"
-    perdeu: .asciiz " perdeu, porque fez uma jogada inválida\n"
-    empate_n: .asciiz "\nEmpate!\n"
+    espaco: .asciiz  " "
+    tab: .asciiz "\t"
+    linha: .asciiz "\n\t-+-+-\n\t"
+    vez: .asciiz "\n\n\tVez do jogador "
+    escolha: .asciiz "\n\n\tDeseja continuar jogando? 1 para continuar ou 0 para sair\n"
+    jogada: .asciiz "\n\tQual a posicao deseja jogar de 1 a 9?"
+    menu_op: .asciiz "\n\tMENU\n 1 - REGRAS\n 2 - JOGAR\n 3 - SAIR\n"
+    op_invalida: .asciiz "\n\tOPCAO INVALIDA\n"
+    regras: .asciiz "\n\tREGRAS\n O tabuleiro é composto por 9 espaços.\n Cada jogador possui um símbolo para representar sua escolha (0 ou 1).\n Os jogadores se revezam para jogar.\n Somente espaços vazios podem ser preenchidos.\n Se um jogador escolher uma posição inexistente ou ocupada, ele perde a partida.\n Tabuleiro com números que representam as posições: \n\n\t1|2|3\n\t-+-+-\n\t4|5|6\n\t-+-+-\n\t7|8|9\n"
+    jogador_n: .asciiz "\n\t### Jogador "
+    venceu: .asciiz " venceu!###\n"
+    perdeu: .asciiz " perdeu, porque fez uma jogada inválida###"
+    empate_n: .asciiz "\n\t###Empate!###\n"
 .text
 
 #observação quando for fazer a lógica do loop e de decidir quem vai jogar
@@ -68,7 +69,11 @@ imprime_espaco:
     la $a0, espaco
     syscall 
     jr $ra
-    
+imprime_tab:
+   addi $v0, $zero, 4
+    la $a0, tab
+    syscall 
+    jr $ra
 imprime_barra:
     addi $v0, $zero, 4
     la $a0, caracter
@@ -80,7 +85,7 @@ imprime_linha1:
     sw $ra, 0($sp)             # Salvar o endereço de retorno na pilha
     
     add $a1, $zero, $t0
-    
+    jal imprime_tab
     jal imprime_num
     jal imprime_barra
     add $a1, $zero, $t1
@@ -174,18 +179,19 @@ e_igual:
 	addi $v1, $zero, 1
 	retorne: jr $ra
 vez_jogador:
-	addi $sp, $sp, -4         
-        sw $ra, 0($sp) 
-        
-	addi $v0, $zero, 4
-	la $a0, vez
-	syscall 
-	add $a1, $zero, $s6
-	jal imprime_num
-	
-	lw $ra, 0($sp)           
-        addi $sp, $sp, 4  
-	jr $ra
+    addi $sp, $sp, -4          # Aloca espaço na pilha
+    sw $ra, 0($sp)             # Salva o endereço de retorno
+    
+    addi $v0, $zero, 4
+    la $a0, vez
+    syscall 
+    add $a1, $zero, $s6
+    jal imprime_num
+    
+    lw $ra, 0($sp)             # Restaura o endereço de retorno
+    addi $sp, $sp, 4           # Desaloca espaço da pilha
+    jr $ra
+
 #Faz o jogador jogar salvando que foi ele quem jogou  em um registrador
 jogador: 
     addi $sp, $sp, -4          # Alocação de espaço na pilha
@@ -287,6 +293,7 @@ conferir_jogada_valida:
 	addi $v0, $zero,4 
 	la $a0, perdeu
 	syscall
+	j f
 	conferir: jal 	conferir_resultado
 	j f
 	
