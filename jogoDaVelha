@@ -8,15 +8,13 @@
     jogada: .asciiz "\n\tQual a posicao deseja jogar de 1 a 9?"
     menu_op: .asciiz "\n\tMENU\n 1 - REGRAS\n 2 - JOGAR\n 3 - SAIR\n"
     op_invalida: .asciiz "\n\tOPCAO INVALIDA\n"
-    regras: .asciiz "\n\tREGRAS\n O tabuleiro é composto por 9 espaços.\n Cada jogador possui um símbolo para representar sua escolha (0 ou 1).\n Os jogadores se revezam para jogar.\n Somente espaços vazios podem ser preenchidos.\n Se um jogador escolher uma posição inexistente ou ocupada, ele perde a partida.\n Tabuleiro com números que representam as posições: \n\n\t1|2|3\n\t-+-+-\n\t4|5|6\n\t-+-+-\n\t7|8|9\n"
+    regras: .asciiz "\n\tREGRAS\n O tabuleiro e composto por 9 espacos.\n Cada jogador possui um simbolo para representar sua escolha (0 ou 1).\n Os jogadores se revezam para jogar.\n Somente espacos vazios podem ser preenchidos.\n Se um jogador escolher uma posição inexistente ou ocupada, ele perde a partida.\n Tabuleiro com números que representam as posições: \n\n\t1|2|3\n\t-+-+-\n\t4|5|6\n\t-+-+-\n\t7|8|9\n"
     jogador_n: .asciiz "\n\t### Jogador "
     venceu: .asciiz " venceu!###\n"
-    perdeu: .asciiz " perdeu, porque fez uma jogada inválida###"
+    perdeu: .asciiz " perdeu, porque fez uma jogada invalida###"
     empate_n: .asciiz "\n\t###Empate!###\n"
 .text
 
-#observação quando for fazer a lógica do loop e de decidir quem vai jogar
-#lembrar de salar em a2 para ser ultilizada em confere_jogada_valida
 
 #registradores $t1 a $t7 e $t8  são para cada posição do tabuleiro
 #registradores $a0, $a1 e $a2 são para parâmetros de funções
@@ -59,10 +57,22 @@ imprime_linha_divisoria:
     jr $ra
 
 imprime_num:
+   
+    beq $a1, 2, imprime
+     
     addi $v0, $zero, 1
     add $a0, $zero,$a1 
     syscall 
-    jr $ra
+    j re
+    
+    imprime:
+    addi $sp, $sp, -4          # Alocação de espaço na pilha
+    sw $ra, 0($sp)             # Salvar o endereço de retorno na pilha
+    jal imprime_espaco
+    lw $ra, 0($sp)             # Restaurar o endereço de retorno
+    addi $sp, $sp, 4           # Desalocar da pilha
+    
+    re : jr $ra
 
 imprime_espaco:
     addi $v0, $zero, 4
